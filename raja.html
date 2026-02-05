@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>qanun | Admin Dashboard</title>
+
+  <!-- Chart.js (CDN) Docs: https://www.chartjs.org/docs/latest/ -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --gold-1:#d7b24a; --gold-2:#b88d2e; --gold-3:#a9791f;
+      --bg:#0f0f10;
+      --card: rgba(255,255,255,.92);
+      --glass: rgba(255,255,255,.10);
+      --stroke: rgba(255,255,255,.18);
+      --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --ink:#151515;
+      --muted:#6a6a6a;
+      --radius: 18px;
+      --ok: rgba(34,197,94,.14);
+      --okb: rgba(34,197,94,.28);
+      --err: rgba(239,68,68,.14);
+      --errb: rgba(239,68,68,.28);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+      color:#fff;
+      min-height:100vh;
+      background:
+        radial-gradient(900px 520px at 50% 0%, rgba(255,255,255,.10), transparent 60%),
+        radial-gradient(700px 380px at 12% 18%, rgba(215,178,74,.22), transparent 62%),
+        radial-gradient(700px 380px at 88% 18%, rgba(215,178,74,.18), transparent 62%),
+        linear-gradient(180deg, #0d0d0e 0%, #0c0c0d 65%, #0a0a0b 100%);
+      padding: 20px;
+    }
+
+    .container{max-width:1280px;margin:0 auto;display:grid;gap:14px}
+
+    /* Top header */
+    .topbar{
+      display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
+      padding:16px 16px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{
+      width:48px;height:48px;border-radius:16px;
+      background: rgba(255,255,255,.95);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow: 0 12px 30px rgba(0,0,0,.30);
+    }
+    .logo svg{width:28px;height:28px;fill:none;stroke:#c28d12;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+    .titleBlock h1{margin:0;font-size:18px;letter-spacing:.2px}
+    .titleBlock p{margin:0;margin-top:2px;font-size:12px;opacity:.9;line-height:1.6}
+
+    .statusPill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.08);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .dot{width:10px;height:10px;border-radius:50%}
+    .dot.load{background: rgba(255,255,255,.85)}
+    .dot.ok{background: rgba(34,197,94,.92)}
+    .dot.err{background: rgba(239,68,68,.92)}
+
+    /* Layout */
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 14px;
+      align-items:start;
+    }
+    @media (max-width: 1050px){ .grid{grid-template-columns:1fr} }
+
+    /* Cards */
+    .card{
+      background: var(--card);
+      color: var(--ink);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.55);
+    }
+    .card h2{margin:0 0 8px;font-size:16px}
+    .muted{color: var(--muted); font-size:12px; line-height:1.75; margin:0}
+
+    /* Auth bar */
+    .auth{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: 1fr auto auto;
+      gap:10px;
+      align-items:center;
+    }
+    @media (max-width: 760px){ .auth{grid-template-columns:1fr} }
+
+    input,button,select{
+      padding: 11px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(17,17,17,.14);
+      font-size:14px;
+      outline:none;
+      background: rgba(255,255,255,.96);
+    }
+    button{
+      cursor:pointer;
+      font-weight:900;
+      border:0;
+      color:#1b1406;
+      background: linear-gradient(90deg, #f3d27a, #d8aa3c, #c38a16);
+      box-shadow: 0 12px 22px rgba(0,0,0,.12);
+    }
+    .btnSecondary{
+      background: transparent !important;
+      color: var(--ink) !important;
+      border:1px solid rgba(17,17,17,.18) !important;
+      box-shadow:none !important;
+      font-weight:900;
+    }
+
+    .msg{
+      margin-top:10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      display:none;
+      font-size:12px;
+      line-height:1.7;
+    }
+    .msg.err{display:block;background:var(--err);border:1px solid var(--errb);color:#5a1212}
+    .msg.ok{display:block;background:var(--ok);border:1px solid var(--okb);color:#0f3d20}
+
+    /* KPI */
+    .kpiRow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px}
+    @media (max-width: 900px){ .kpiRow{grid-template-columns:1fr} }
+    .kpi{
+      border:1px solid rgba(17,17,17,.10);
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.78));
+      box-shadow: 0 10px 25px rgba(0,0,0,.08);
+      position:relative;
+      overflow:hidden;
+    }
+    .kpi::after{
+      content:"";
+      position:absolute;
+      inset:auto -45% -45% auto;
+      width:190px;height:190px;
+      background: radial-gradient(circle, rgba(215,178,74,.25), transparent 60%);
+    }
+    .kpi .label{font-size:12px;color:#6b6b6b}
+    .kpi .value{font-size:30px;font-weight:950;color:#8b5e00;margin-top:6px}
+    .kpi .sub{font-size:12px;color:#6b6b6b;margin-top:6px}
+
+    /* Charts */
+    .sectionHeader{
+      margin-top:14px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border:1px solid rgba(17,17,17,.10);
+      background: rgba(255,255,255,.72);
+    }
+    .sectionHeader .left{
+      display:flex;flex-direction:column;gap:2px;
+    }
+    .sectionHeader .left .t{font-weight:950;font-size:13px}
+    .sectionHeader .left .s{font-size:11px;color:#6b6b6b;line-height:1.6}
+    .badge{
+      font-size:11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(17,17,17,.10);
+      background: rgba(255,255,255,.92);
+      color:#5b4100;
+      font-weight:950;
+      white-space:nowrap;
+    }
+
+    .chartsGrid{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 1050px){ .chartsGrid{grid-template-columns:1fr} }
+
+    .chartCard{
+      border:1px solid rgba(17,17,17,.10);
+      border-radius: 18px;
+      padding: 12px;
+      background: rgba(255,255,255,.82);
+    }
+    .chartTitle{
+      margin:0 0 8px;
+      font-size:13px;
+      font-weight:950;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    /* Table */
+    .tableHeader{
+      display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
+      margin-bottom:10px;
+    }
+    .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .tools input{min-width:240px}
+    .tools select{min-width:200px}
+
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{
+      border:1px solid rgba(17,17,17,.10);
+      padding:10px;
+      vertical-align:top;
+      text-align:right;
+      font-size:12px;
+    }
+    th{background:rgba(0,0,0,.04);font-weight:950}
+    tr:nth-child(even) td{background:rgba(255,255,255,.72)}
+    pre{margin:0;white-space:pre-wrap;word-break:break-word}
+
+    .hint{
+      margin-top:10px;
+      font-size:11px;
+      color:#6b6b6b;
+      line-height:1.75;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3v18"></path>
+            <path d="M4 21h16"></path>
+            <path d="M6 7h12"></path>
+            <path d="M7 7l-3 6h6l-3-6z"></path>
+            <path d="M17 7l-3 6h6l-3-6z"></path>
+          </svg>
+        </div>
+        <div class="titleBlock">
+          <h1>qanun — لوحة الإدارة</h1>
+          <p>إحصائيات كاملة لكل الأسئلة + رسوم بيانية + آخر الردود</p>
+        </div>
+      </div>
+
+      <div class="statusPill">
+        <span class="dot load" id="statusDot"></span>
+        <span id="statusText">جاهز</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: Dashboard -->
+      <div class="card">
+        <h2>الدخول وتحميل البيانات</h2>
+        <p class="muted">هذه الصفحة تعمل على 5500 (Live Server) وتقرأ البيانات من FastAPI على 8000.</p>
+
+        <div class="auth">
+          <input id="pw" type="password" placeholder="Admin password" />
+          <button id="loadBtn" type="button">تحميل</button>
+          <button id="refreshBtn" class="btnSecondary" type="button">تحديث</button>
+        </div>
+
+        <div id="msg" class="msg err"></div>
+
+        <div class="kpiRow">
+          <div class="kpi">
+            <div class="label">عدد الاستبيانات</div>
+            <div class="value" id="kpiTotal">—</div>
+            <div class="sub" id="kpiUpdated">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="label">أكثر تقييم للتطبيق</div>
+            <div class="value" style="font-size:20px" id="kpiTopRating">—</div>
+            <div class="sub" id="kpiTopRatingCount">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="label">قرار استخدام التطبيق مستقبلًا</div>
+            <div class="value" style="font-size:20px" id="kpiWillUse">—</div>
+            <div class="sub" id="kpiWillUseCount">—</div>
+          </div>
+        </div>
+
+        <div class="sectionHeader">
+          <div class="left">
+            <div class="t">الرسوم البيانية لجميع الأسئلة</div>
+            <div class="s">يتم توليد الرسوم من ملخص /admin/summary</div>
+          </div>
+          <span class="badge" id="badgeTotal">—</span>
+        </div>
+
+        <div class="chartsGrid">
+          <!-- General -->
+          <div class="chartCard">
+            <p class="chartTitle">العمر <span class="badge" id="bAge">—</span></p>
+            <canvas id="c_age"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <p class="chartTitle">تقييم التطبيق <span class="badge" id="bRating">—</span></p>
+            <canvas id="c_app_rating"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <p class="chartTitle">هل سيستخدم التطبيق؟ <span class="badge" id="bWillUse">—</span></p>
+            <canvas id="c_will_use"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <p class="chartTitle">الوضع القانوني <span class="badge" id="bLegal">—</span></p>
+            <canvas id="c_legal_status"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <p class="chartTitle">أسباب الاستخدام/عدم الاستخدام <span class="badge" id="bWhy">—</span></p>
+            <canvas id="c_why_use"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <p class="chartTitle">طرق التسجيل المفضلة <span class="badge" id="bSignup">—</span></p>
+            <canvas id="c_signup"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <p class="chartTitle">طرق الدفع المفضلة <span class="badge" id="bPayment">—</span></p>
+            <canvas id="c_payment"></canvas>
+          </div>
+
+          <!-- AI -->
+          <div class="chartCard">
+            <p class="chartTitle">استخدام AI في العمل <span class="badge" id="bAiUseWork">—</span></p>
+            <canvas id="c_ai_use_work"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <p class="chartTitle">مصادر AI المفضلة <span class="badge" id="bAiSources">—</span></p>
+            <canvas id="c_ai_sources_pref"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <p class="chartTitle">الثقة بإجابات AI <span class="badge" id="bAiTrust">—</span></p>
+            <canvas id="c_ai_trust"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <p class="chartTitle">الميزة المتوقعة من AI <span class="badge" id="bAiFeature">—</span></p>
+            <canvas id="c_ai_feature"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <p class="chartTitle">تنبيه عدم الاستشارة القانونية <span class="badge" id="bAiDisc">—</span></p>
+            <canvas id="c_ai_disclaimer"></canvas>
+          </div>
+        </div>
+
+        <p class="hint">
+          مراجع: FastAPI https://fastapi.tiangolo.com/ — Chart.js https://www.chartjs.org/docs/latest/ — OWASP https://cheatsheetseries.owasp.org/
+        </p>
+      </div>
+
+      <!-- RIGHT: Table -->
+      <div class="card">
+        <div class="tableHeader">
+          <div>
+            <h2 style="margin:0 0 6px">آخر الردود</h2>
+            <p class="muted">بحث + فلترة + عرض JSON.</p>
+          </div>
+          <div class="tools">
+            <input id="search" type="text" placeholder="بحث (اسم/هاتف/كلمة)..." />
+            <select id="filterWillUse">
+              <option value="">فلترة: الكل</option>
+              <option value="نعم">سوف يستخدم: نعم</option>
+              <option value="لا">سوف يستخدم: لا</option>
+              <option value="ربما">سوف يستخدم: ربما</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="tableWrap" class="muted">لم يتم التحميل بعد.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // IMPORTANT: لأن الصفحة على 5500 والـ API على 8000
+  const API = "http://127.0.0.1:8000";
+
+  // Chart defaults
+  Chart.defaults.color = "#3a2a00";
+  Chart.defaults.font.family = "Tahoma, Arial";
+  Chart.defaults.plugins.tooltip.backgroundColor = "rgba(0,0,0,.85)";
+  Chart.defaults.plugins.tooltip.titleColor = "#fff";
+  Chart.defaults.plugins.tooltip.bodyColor = "#fff";
+
+  const statusText = document.getElementById("statusText");
+  const statusDot = document.getElementById("statusDot");
+  const msg = document.getElementById("msg");
+
+  const kpiTotal = document.getElementById("kpiTotal");
+  const kpiUpdated = document.getElementById("kpiUpdated");
+  const kpiTopRating = document.getElementById("kpiTopRating");
+  const kpiTopRatingCount = document.getElementById("kpiTopRatingCount");
+  const kpiWillUse = document.getElementById("kpiWillUse");
+  const kpiWillUseCount = document.getElementById("kpiWillUseCount");
+
+  const badgeTotal = document.getElementById("badgeTotal");
+
+  const badges = {
+    age: document.getElementById("bAge"),
+    rating: document.getElementById("bRating"),
+    will: document.getElementById("bWillUse"),
+    legal: document.getElementById("bLegal"),
+    why: document.getElementById("bWhy"),
+    signup: document.getElementById("bSignup"),
+    payment: document.getElementById("bPayment"),
+    aiUseWork: document.getElementById("bAiUseWork"),
+    aiSources: document.getElementById("bAiSources"),
+    aiTrust: document.getElementById("bAiTrust"),
+    aiFeature: document.getElementById("bAiFeature"),
+    aiDisc: document.getElementById("bAiDisc"),
+  };
+
+  const tableWrap = document.getElementById("tableWrap");
+  const searchInput = document.getElementById("search");
+  const filterWillUse = document.getElementById("filterWillUse");
+
+  let charts = [];
+  let cachedRows = [];
+
+  function setStatus(mode, text){
+    statusText.textContent = text;
+    statusDot.className = "dot " + mode; // load / ok / err
+  }
+  function showError(t){
+    msg.className = "msg err";
+    msg.textContent = t;
+    msg.style.display = "block";
+  }
+  function showOk(t){
+    msg.className = "msg ok";
+    msg.textContent = t;
+    msg.style.display = "block";
+  }
+  function clearMsg(){ msg.style.display="none"; msg.textContent=""; }
+
+  function destroyCharts(){
+    charts.forEach(c => c.destroy());
+    charts = [];
+  }
+
+  function topOf(labels, values){
+    if(!labels || labels.length===0) return ["—", 0];
+    let maxIdx = 0;
+    for(let i=1;i<values.length;i++) if(values[i] > values[maxIdx]) maxIdx = i;
+    return [labels[maxIdx], values[maxIdx]];
+  }
+  function sum(values){ return (values||[]).reduce((a,b)=>a+(b||0),0); }
+
+  async function postJSON(path, body){
+    const res = await fetch(API + path, {
+      method:"POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(()=> ({}));
+    if(!res.ok) throw new Error(data.detail || "Request failed");
+    return data;
+  }
+
+  function makeBar(canvasId, labels, values){
+    const ctx = document.getElementById(canvasId);
+    return new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "عدد",
+          data: values,
+          backgroundColor: "rgba(215,178,74,.85)",
+          borderColor: "#8b5e00",
+          borderWidth: 1.4,
+          borderRadius: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      }
+    });
+  }
+
+  function makePie(canvasId, labels, values){
+    const ctx = document.getElementById(canvasId);
+    return new Chart(ctx, {
+      type: "pie",
+      data: { labels, datasets: [{ data: values }]},
+      options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+    });
+  }
+
+  function normalizeText(obj){
+    try{ return JSON.stringify(obj).toLowerCase(); }catch{ return ""; }
+  }
+
+  function renderTable(rows){
+    if(!rows || rows.length===0){
+      tableWrap.innerHTML = "لا توجد ردود بعد.";
+      return;
+    }
+    let html = `<table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>الوقت</th>
+          <th>ملخص</th>
+          <th>البيانات (JSON)</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    for(const r of rows){
+      const t = new Date((r.created_at||0)*1000).toLocaleString();
+      const p = r.payload || {};
+      const summary = `
+        <div><b>الاسم:</b> ${p.name || "—"}</div>
+        <div><b>العمر:</b> ${p.age || "—"}</div>
+        <div><b>تقييم:</b> ${p.app_rating || "—"}</div>
+        <div><b>سوف يستخدم:</b> ${p.will_use || "—"}</div>
+        <div><b>AI مصادر:</b> ${p.ai_sources_pref || "—"}</div>
+      `;
+      const payload = JSON.stringify(p, null, 2);
+      html += `<tr>
+        <td>${r.id}</td>
+        <td>${t}</td>
+        <td>${summary}</td>
+        <td><pre>${payload}</pre></td>
+      </tr>`;
+    }
+    html += `</tbody></table>`;
+    tableWrap.innerHTML = html;
+  }
+
+  function applyFilters(){
+    const q = (searchInput.value || "").trim().toLowerCase();
+    const will = filterWillUse.value;
+
+    let rows = cachedRows.slice();
+
+    if (will){
+      rows = rows.filter(r => (r.payload?.will_use || "") === will);
+    }
+
+    if (q){
+      rows = rows.filter(r => normalizeText(r.payload).includes(q));
+    }
+
+    renderTable(rows);
+  }
+
+  function getField(summary, kind, field){
+    // kind: "single" or "multi"
+    const block = summary?.[kind]?.[field];
+    if(!block) return {labels:[], values:[]};
+    return {labels: block.labels || [], values: block.values || []};
+  }
+
+  function setBadge(el, values){
+    el.textContent = "إجمالي: " + sum(values);
+  }
+
+  async function loadAll(){
+    const password = document.getElementById("pw").value;
+    if(!password) { showError("أدخل كلمة المرور."); return; }
+
+    try{
+      clearMsg();
+      setStatus("load", "جاري التحميل...");
+
+      // summary + list
+      const summary = await postJSON("/admin/summary", {password});
+      const list = await postJSON("/admin/list", {password});
+
+      cachedRows = list.rows || [];
+      const total = summary.total || 0;
+
+      // KPIs
+      kpiTotal.textContent = total;
+      kpiUpdated.textContent = "آخر تحديث: " + new Date().toLocaleString();
+      badgeTotal.textContent = "إجمالي الاستبيانات: " + total;
+
+      const rating = getField(summary, "single", "app_rating");
+      const [rt, rc] = topOf(rating.labels, rating.values);
+      kpiTopRating.textContent = rt;
+      kpiTopRatingCount.textContent = "عدد: " + rc;
+
+      const willUse = getField(summary, "single", "will_use");
+      const [wut, wuc] = topOf(willUse.labels, willUse.values);
+      kpiWillUse.textContent = wut;
+      kpiWillUseCount.textContent = "عدد: " + wuc;
+
+      // Destroy and rebuild charts for ALL questions
+      destroyCharts();
+
+      const age = getField(summary, "single", "age");
+      const legal = getField(summary, "single", "legal_status");
+      const why = getField(summary, "multi", "why_use");
+      const signup = getField(summary, "multi", "signup");
+      const payment = getField(summary, "multi", "payment");
+
+      const aiUseWork = getField(summary, "single", "ai_use_work");
+      const aiSources = getField(summary, "single", "ai_sources_pref");
+      const aiTrust = getField(summary, "single", "ai_trust");
+      const aiFeature = getField(summary, "single", "ai_feature");
+      const aiDisc = getField(summary, "single", "ai_disclaimer");
+
+      // Badges
+      setBadge(badges.age, age.values);
+      setBadge(badges.rating, rating.values);
+      setBadge(badges.will, willUse.values);
+      setBadge(badges.legal, legal.values);
+      setBadge(badges.why, why.values);
+      setBadge(badges.signup, signup.values);
+      setBadge(badges.payment, payment.values);
+      setBadge(badges.aiUseWork, aiUseWork.values);
+      setBadge(badges.aiSources, aiSources.values);
+      setBadge(badges.aiTrust, aiTrust.values);
+      setBadge(badges.aiFeature, aiFeature.values);
+      setBadge(badges.aiDisc, aiDisc.values);
+
+      // Charts (اختيار نوع الرسم حسب طبيعة السؤال)
+      charts.push(makeBar("c_age", age.labels, age.values));
+      charts.push(makePie("c_app_rating", rating.labels, rating.values));
+      charts.push(makePie("c_will_use", willUse.labels, willUse.values));
+      charts.push(makeBar("c_legal_status", legal.labels, legal.values));
+
+      charts.push(makeBar("c_why_use", why.labels, why.values));
+      charts.push(makeBar("c_signup", signup.labels, signup.values));
+      charts.push(makeBar("c_payment", payment.labels, payment.values));
+
+      charts.push(makePie("c_ai_use_work", aiUseWork.labels, aiUseWork.values));
+      charts.push(makePie("c_ai_sources_pref", aiSources.labels, aiSources.values));
+      charts.push(makeBar("c_ai_trust", aiTrust.labels, aiTrust.values));
+      charts.push(makeBar("c_ai_feature", aiFeature.labels, aiFeature.values));
+      charts.push(makePie("c_ai_disclaimer", aiDisc.labels, aiDisc.values));
+
+      // Table
+      applyFilters();
+
+      setStatus("ok", "تم التحميل");
+      showOk("تم تحميل الإحصائيات والرسوم والردود.");
+    }catch(e){
+      setStatus("err", "فشل التحميل");
+      showError("خطأ: " + e.message);
+    }
+  }
+
+  document.getElementById("loadBtn").addEventListener("click", loadAll);
+  document.getElementById("refreshBtn").addEventListener("click", loadAll);
+  searchInput.addEventListener("input", applyFilters);
+  filterWillUse.addEventListener("change", applyFilters);
+
+  // رسالة أولية
+  setStatus("load", "أدخل كلمة المرور ثم اضغط تحميل");
+</script>
+
+<!--
+مراجع موثوقة:
+FastAPI: https://fastapi.tiangolo.com/
+Chart.js: https://www.chartjs.org/docs/latest/
+OWASP: https://cheatsheetseries.owasp.org/
+-->
+</body>
+</html>

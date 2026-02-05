@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>qanun | استبيان</title>
+
+  <style>
+    :root{
+      --gold-1:#d7b24a; --gold-2:#b88d2e; --gold-3:#a9791f;
+      --ink:#141414; --muted:#525252;
+      --card: rgba(255,255,255,0.92);
+      --shadow: 0 18px 50px rgba(0,0,0,.22);
+      --radius: 22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+      color:var(--ink); min-height:100vh; display:flex; align-items:center; justify-content:center;
+      padding:24px;
+      background:
+        radial-gradient(900px 500px at 50% 5%, rgba(255,255,255,.35), transparent 60%),
+        linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 55%, var(--gold-3) 100%);
+    }
+    .wrap{width:min(980px,100%); display:grid; grid-template-columns:1.05fr .95fr; gap:18px}
+    @media (max-width:920px){.wrap{grid-template-columns:1fr}}
+
+    .brand{
+      border-radius:var(--radius); padding:26px; box-shadow:var(--shadow);
+      background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      color:#fff; position:relative; overflow:hidden;
+    }
+    .brand::before{
+      content:""; position:absolute; inset:-80px -120px auto auto; width:280px; height:280px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), transparent 60%);
+      transform: rotate(10deg);
+    }
+    .logoBox{
+      width:84px;height:84px;border-radius:22px;background:rgba(255,255,255,0.95);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 10px 25px rgba(0,0,0,.18); margin-bottom:14px;
+    }
+    .logoBox svg{width:48px;height:48px;fill:none;stroke:#c28d12;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+    h1{margin:0 0 6px;font-size:34px}
+    .sub{margin:0 0 14px;font-size:16px;opacity:.95;line-height:1.8}
+    .desc{margin:0;opacity:.92;line-height:1.9;font-size:14px}
+    .contact{
+      margin-top:12px; padding:12px 14px; border-radius:16px;
+      border:1px dashed rgba(255,255,255,.45); background:rgba(255,255,255,.12);
+      font-size:13px; line-height:1.9;
+    }
+    a{color:#fff; font-weight:800; text-decoration:underline}
+
+    .card{border-radius:var(--radius); padding:22px; background:var(--card); box-shadow:var(--shadow); border:1px solid rgba(255,255,255,.55)}
+    .title{margin:0 0 10px;font-size:18px}
+    .muted{color:var(--muted);font-size:13px;line-height:1.8;margin:0 0 12px}
+    .section{border:1px solid rgba(20,20,20,.08); border-radius:18px; padding:16px; background:rgba(255,255,255,0.72); margin:12px 0}
+    .section h3{margin:0 0 10px;font-size:15px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:520px){.grid{grid-template-columns:1fr}}
+    label{display:block;font-size:13px;margin:0 0 6px}
+    input, select, textarea{
+      width:100%; padding:12px; border-radius:14px; border:1px solid rgba(17,17,17,.10);
+      background:rgba(255,255,255,0.95); outline:none; font-size:14px
+    }
+    textarea{min-height:110px; resize:vertical}
+    .req{color:#b00020;font-weight:900}
+
+    /* الخيارات المتناسقة تحت بعض */
+    .choices{display:flex;flex-direction:column;gap:10px}
+    .choice{
+      display:flex;align-items:center;gap:12px;width:100%;
+      padding:12px 14px;border-radius:16px;border:1px solid rgba(17,17,17,.10);
+      background:rgba(255,255,255,0.88);
+    }
+    .choice input{width:18px;height:18px; accent-color:#c38a16}
+    .choice span{flex:1}
+
+    .btn{
+      width:100%; padding:12px 14px; border-radius:999px; border:0; cursor:pointer;
+      font-weight:900; font-size:15px; margin-top:10px; color:#1b1406;
+      background: linear-gradient(90deg, #f3d27a, #d8aa3c, #c38a16);
+      box-shadow:0 12px 28px rgba(0,0,0,.18);
+    }
+    .btn.secondary{background:transparent;color:var(--ink);border:1px solid rgba(17,17,17,.18);box-shadow:none;font-weight:800}
+
+    .msg{margin-top:10px;padding:12px 14px;border-radius:14px;display:none;line-height:1.8;font-size:13px}
+    .msg.ok{display:block;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#0f3d20}
+    .msg.err{display:block;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#5a1212}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <section class="brand">
+      <div class="logoBox" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 3v18"></path>
+          <path d="M4 21h16"></path>
+          <path d="M6 7h12"></path>
+          <path d="M7 7l-3 6h6l-3-6z"></path>
+          <path d="M17 7l-3 6h6l-3-6z"></path>
+        </svg>
+      </div>
+      <h1>qanun</h1>
+      <p class="sub">منصة الخدمات القانونية</p>
+      <p class="desc">هذا الاستبيان لجمع آراء المستخدمين لتطوير التطبيق وتحسين تجربة الاستخدام.</p>
+      <div class="contact">للتواصل أو الاستفسار: <a href="mailto:qanunjo@gmail.com">qanunjo@gmail.com</a></div>
+    </section>
+
+    <section class="card">
+      <h2 class="title">استبيان تقييم تطبيق qanun</h2>
+      <p class="muted">الحقول المعلّمة بـ <span class="req">*</span> إلزامية.</p>
+
+      <form id="survey" novalidate>
+        <div class="section">
+          <h3>1) المعلومات العامة</h3>
+          <div class="grid">
+            <div>
+              <label>1- ما اسمك <span class="req">*</span></label>
+              <input name="name" required />
+            </div>
+            <div>
+              <label>2- رقم الهاتف (اختياري)</label>
+              <input name="phone" type="tel" inputmode="tel" />
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <label>3- العمر <span class="req">*</span></label>
+            <select name="age" required>
+              <option value="" disabled selected>اختر العمر</option>
+              <option>أقل من 18</option><option>18 – 24</option><option>25 – 34</option><option>35 – 44</option><option>45 فأكثر</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>2) تقييم التطبيق</h3>
+
+          <label>4- ما رأيك في التطبيق (qanun)؟ <span class="req">*</span></label>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="app_rating" value="ممتاز" required><span>ممتاز</span></label>
+            <label class="choice"><input type="radio" name="app_rating" value="جيد جدًا"><span>جيد جدًا</span></label>
+            <label class="choice"><input type="radio" name="app_rating" value="جيد"><span>جيد</span></label>
+            <label class="choice"><input type="radio" name="app_rating" value="مقبول"><span>مقبول</span></label>
+            <label class="choice"><input type="radio" name="app_rating" value="ضعيف"><span>ضعيف</span></label>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>5- هل سوف تستعمل التطبيق؟ <span class="req">*</span></label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="will_use" value="نعم" required><span>نعم</span></label>
+              <label class="choice"><input type="radio" name="will_use" value="لا"><span>لا</span></label>
+              <label class="choice"><input type="radio" name="will_use" value="ربما"><span>ربما</span></label>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>6- لماذا سوف تستعمله أو العكس؟ <span class="req">*</span></label>
+            <div class="choices">
+              <label class="choice"><input type="checkbox" name="why_use" value="لتسهيل التواصل مع العملاء"><span>لتسهيل التواصل مع العملاء</span></label>
+              <label class="choice"><input type="checkbox" name="why_use" value="لتنظيم طلبات الاستشارة والمتابعة"><span>لتنظيم طلبات الاستشارة والمتابعة</span></label>
+              <label class="choice"><input type="checkbox" name="why_use" value="لتسهيل الوصول للخدمات القانونية"><span>لتسهيل الوصول للخدمات القانونية</span></label>
+              <label class="choice"><input type="checkbox" name="why_use" value="لا أرى فائدة حالياً"><span>لا أرى فائدة حالياً</span></label>
+            </div>
+            <div style="margin-top:10px">
+              <label>سبب آخر (اختياري)</label>
+              <input name="why_other" />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>3) الخلفية المهنية</h3>
+          <label>7- وضعك القانوني الحالي <span class="req">*</span></label>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="legal_status" value="طالب قانون" required><span>طالب قانون</span></label>
+            <label class="choice"><input type="radio" name="legal_status" value="حاصل على شهادة المحاماة"><span>حاصل على شهادة المحاماة</span></label>
+            <label class="choice"><input type="radio" name="legal_status" value="محامٍ مزاول للمهنة"><span>محامٍ مزاول للمهنة</span></label>
+            <label class="choice"><input type="radio" name="legal_status" value="قاضٍ / مستشار قانوني"><span>قاضٍ / مستشار قانوني</span></label>
+            <label class="choice"><input type="radio" name="legal_status" value="غير ذلك"><span>غير ذلك</span></label>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>4) التسجيل والدفع</h3>
+          <label>8- كيف تود أن يكون نظام التسجيل؟ <span class="req">*</span></label>
+          <div class="choices">
+            <label class="choice"><input type="checkbox" name="signup" value="عبر رقم الهاتف"><span>عبر رقم الهاتف</span></label>
+            <label class="choice"><input type="checkbox" name="signup" value="عبر البريد الإلكتروني"><span>عبر البريد الإلكتروني</span></label>
+            <label class="choice"><input type="checkbox" name="signup" value="عبر الهوية الوطنية"><span>عبر الهوية الوطنية</span></label>
+            <label class="choice"><input type="checkbox" name="signup" value="عبر وسائل التواصل الاجتماعي"><span>عبر وسائل التواصل الاجتماعي</span></label>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>9- كيف تحب أن يكون نظام الدفع؟ <span class="req">*</span></label>
+            <div class="choices">
+              <label class="choice"><input type="checkbox" name="payment" value="اشتراكات إلكترونية"><span>اشتراكات إلكترونية</span></label>
+              <label class="choice"><input type="checkbox" name="payment" value="Visa"><span>Visa</span></label>
+              <label class="choice"><input type="checkbox" name="payment" value="PayPal"><span>PayPal</span></label>
+              <label class="choice"><input type="checkbox" name="payment" value="CliQ"><span>CliQ</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>5) الذكاء الاصطناعي</h3>
+
+          <label>10- في مهامك أو في عملك: هل سوف تستخدم الذكاء الاصطناعي؟ <span class="req">*</span></label>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="ai_use_work" value="نعم بشكل دائم" required><span>نعم بشكل دائم</span></label>
+            <label class="choice"><input type="radio" name="ai_use_work" value="أحيانًا"><span>أحيانًا</span></label>
+            <label class="choice"><input type="radio" name="ai_use_work" value="نادرًا"><span>نادرًا</span></label>
+            <label class="choice"><input type="radio" name="ai_use_work" value="لا"><span>لا</span></label>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>11- تفضيل مصادر الذكاء الاصطناعي <span class="req">*</span></label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="ai_sources_pref" value="كتب المحاماة فقط" required><span>كتب المحاماة فقط</span></label>
+              <label class="choice"><input type="radio" name="ai_sources_pref" value="القانون الأردني فقط"><span>القانون الأردني فقط</span></label>
+              <label class="choice"><input type="radio" name="ai_sources_pref" value="كتب المحاماة + القانون الأردني"><span>كتب المحاماة + القانون الأردني</span></label>
+              <label class="choice"><input type="radio" name="ai_sources_pref" value="مصادر قانونية عربية عامة"><span>مصادر قانونية عربية عامة</span></label>
+            </div>
+          </div>
+
+          <!-- 3 أسئلة إضافية عن الذكاء الاصطناعي -->
+          <div style="margin-top:12px">
+            <label>12- ما مدى ثقتك بإجابات الذكاء الاصطناعي قانونيًا؟ <span class="req">*</span></label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="ai_trust" value="عالية جدًا" required><span>عالية جدًا</span></label>
+              <label class="choice"><input type="radio" name="ai_trust" value="عالية"><span>عالية</span></label>
+              <label class="choice"><input type="radio" name="ai_trust" value="متوسطة"><span>متوسطة</span></label>
+              <label class="choice"><input type="radio" name="ai_trust" value="منخفضة"><span>منخفضة</span></label>
+              <label class="choice"><input type="radio" name="ai_trust" value="لا أثق"><span>لا أثق</span></label>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>13- أهم ميزة تتوقعها من الذكاء الاصطناعي؟ <span class="req">*</span></label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="ai_feature" value="تلخيص المواد القانونية" required><span>تلخيص المواد القانونية</span></label>
+              <label class="choice"><input type="radio" name="ai_feature" value="تسهيل البحث داخل القوانين"><span>تسهيل البحث داخل القوانين</span></label>
+              <label class="choice"><input type="radio" name="ai_feature" value="صياغة مسودات عامة"><span>صياغة مسودات عامة</span></label>
+              <label class="choice"><input type="radio" name="ai_feature" value="شرح مبسط للمصطلحات"><span>شرح مبسط للمصطلحات</span></label>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>14- هل تفضّل تنبيه واضح أن الإجابة ليست استشارة قانونية؟ <span class="req">*</span></label>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="ai_disclaimer" value="نعم" required><span>نعم</span></label>
+              <label class="choice"><input type="radio" name="ai_disclaimer" value="لا"><span>لا</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>6) ملاحظات أخرى</h3>
+          <label>15- ملاحظات أخرى (اختياري)</label>
+          <textarea name="notes" placeholder="اكتب ملاحظاتك هنا..."></textarea>
+        </div>
+
+        <button class="btn" type="submit">إرسال</button>
+        <button class="btn secondary" type="button" id="resetBtn">تفريغ الحقول</button>
+
+        <div id="msgOk" class="msg ok"></div>
+        <div id="msgErr" class="msg err"></div>
+      </form>
+    </section>
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:8000"; // Backend FastAPI
+
+    const form = document.getElementById("survey");
+    const msgOk = document.getElementById("msgOk");
+    const msgErr = document.getElementById("msgErr");
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      form.reset();
+      msgOk.style.display = "none";
+      msgErr.style.display = "none";
+    });
+
+    function showOk(t){ msgErr.style.display="none"; msgOk.textContent=t; msgOk.style.display="block"; }
+    function showErr(t){ msgOk.style.display="none"; msgErr.textContent=t; msgErr.style.display="block"; }
+
+    function pickMany(name){
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(x => x.value);
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (!form.checkValidity()) { showErr("يرجى تعبئة الحقول الإجباريّة."); return; }
+
+      const fd = new FormData(form);
+      const why_use = pickMany("why_use");
+      const signup  = pickMany("signup");
+      const payment = pickMany("payment");
+
+      if (why_use.length===0) { showErr("يرجى اختيار سبب واحد على الأقل في سؤال (6)."); return; }
+      if (signup.length===0)  { showErr("يرجى اختيار خيار واحد على الأقل في سؤال (8)."); return; }
+      if (payment.length===0) { showErr("يرجى اختيار خيار واحد على الأقل في سؤال (9)."); return; }
+
+      const payload = {
+        name: fd.get("name"),
+        phone: fd.get("phone") || "",
+        age: fd.get("age"),
+
+        app_rating: fd.get("app_rating"),
+        will_use: fd.get("will_use"),
+        why_use,
+        why_other: fd.get("why_other") || "",
+
+        legal_status: fd.get("legal_status"),
+        signup,
+        payment,
+
+        ai_use_work: fd.get("ai_use_work"),
+        ai_sources_pref: fd.get("ai_sources_pref"),
+        ai_trust: fd.get("ai_trust"),
+        ai_feature: fd.get("ai_feature"),
+        ai_disclaimer: fd.get("ai_disclaimer"),
+
+        notes: fd.get("notes") || ""
+      };
+
+      try{
+        const res = await fetch(API + "/submit", {
+          method:"POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({payload})
+        });
+        const data = await res.json().catch(()=> ({}));
+        if(!res.ok) throw new Error(data.detail || "فشل الحفظ");
+        showOk("تم إرسال الاستبيان بنجاح.");
+        form.querySelectorAll("input,select,textarea,button").forEach(el => el.disabled = true);
+      }catch(err){
+        showErr("فشل الإرسال: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
